@@ -8,3 +8,4 @@ Small excercises in ruby language
 * [Check for Benford law](etude2.rb)
 * [Longest Android lockscreen path](etude3.rb)
 * [Grabber for all stickers from vk.com](etude4.rb)
+* [Site availability tester for pyzhov.ru](test_sites.rb)
