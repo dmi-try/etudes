@@ -1,259 +1,15 @@
 #!/usr/bin/env python
 import os
 
-tags = """
-    10
-    10g
-    14.04
-    admin
-    agent
-    astute
-    backports-4.1.1
-    bare-metal
-    baremetal
-    bnx2x
-    bonding
-    bootstrap
-    bvt
-    cciss
-    ceilometer
-    ceph
-    ci
-    ci-status
-    ci-testing
-    cinder
-    cli
-    cobbler
-    cold-restart-improvements
-    conductor
-    content-lenght-range
-    contrail
-    controller
-    corosync
-    customer-found
-    db
-    deadlocks
-    devops
-    dhcp
-    dns
-    dnsmasq
-    docker
-    docs
-    ephemeral
-    eth
-    ethx
-    experimental
-    fakeui
-    feature
-    feature-advanced-networking
-    feature-bonding
-    feature-deadlocks
-    feature-demo-site
-    feature-hardware-change
-    feature-image-based
-    feature-logging
-    feature-mongo
-    feature-multi-l2
-    feature-native-provisioning
-    feature-plugins
-    feature-progress-bar
-    feature-redeployment
-    feature-remote-repos
-    feature-reset-env
-    feature-security
-    feature-simple-mode
-    feature-stats
-    feature-stop-deployment
-    feature-tasks
-    feature-upgrade
-    feature-validation
-    firewall
-    fpb
-    fuel
-    fuel-astute
-    fuel-ci
-    fuel-cli
-    fuel-devops
-    fuel-docs
-    fuel-library
-    fuel-main
-    fuel-plugins
-    fuel-registration
-    fuel-web
-    fuelmenu
-    fuelupgrade
-    galera
-    gerrit
-    gig
-    glance
-    granular
-    gro
-    gso
-    ha
-    ha-guide
-    haproxy
-    havana-backport-potential
-    heat
-    horizon
-    hwrequest
-    icehouse
-    icehouse-backport-potential
-    image-based
-    in
-    in-stable-icehouse
-    infrastructure
-    inprogress
-    iptables
-    iso
-    jenkins
-    json
-    juno
-    keystone
-    known-issues
-    l23
-    l23network
-    library
-    license
-    locale
-    log
-    logging
-    logs
-    low-hanging-fruit
-    make
-    master-slave
-    mcagent
-    mellanox
-    migration
-    mirror
-    mirrors
-    ml2
-    module-build
-    module-client
-    module-fuelmenu
-    module-master-node-installation
-    module-nailgun
-    module-nailgun-agent
-    module-netcheck
-    module-networks
-    module-ostf
-    module-serialization
-    module-shotgun
-    module-tasks
-    module-volumes
-    mongo
-    mongodb
-    monitoring
-    mos
-    mos-linux
-    multi-l3
-    multiple-cluster-networks
-    murano
-    mysql
-    nailgun
-    nailgun-agent
-    netprobe
-    networking
-    neutron
-    new-repo
-    newcomers-docs
-    nic
-    nova
-    nova.conf
-    nsx
-    offload
-    on-verification
-    openstack
-    operations
-    ops
-    osci
-    osci-package
-    osft
-    ostf
-    ostf-adapter
-    ovs
-    pacemaker
-    package
-    packages
-    parnter
-    partial-content
-    partner
-    patch-openstack
-    patching
-    performance
-    pi-board
-    plugin
-    plugins
-    progress
-    provision
-    pumphouse
-    puppet
-    pxe
-    python
-    python-fuelclient
-    qa
-    qemu
-    rabbit
-    rabbitmq
-    rados
-    radosgw
-    raid
-    release-notes
-    release-notese
-    report-exporter
-    review
-    rpm
-    ruby2
-    s-size
-    sahara
-    scale
-    sclae
-    script
-    security
-    seed
-    shotgun
-    size-l
-    size-m
-    size-s
-    sorting
-    ssd
-    staging
-    statistics
-    stats
-    storage
-    supervisor
-    swift
-    system-test-added
-    system-test-not-required
-    system-tests
-    tech-debt
-    techtalk
-    testrail
-    timeout
-    to-be-covered-by-tests
-    ubuntu
-    ubuntu14
-    ubuntu1404
-    ui
-    unified-objects
-    unit-tests
-    update
-    upgrade
-    vbox-scripts
-    vcenter
-    verification-done
-    version
-    virtualbox
-    vmdk
-    vmware
-    volumes
-    zabbix
-""".split("\n    ")
+from launchpadlib.launchpad import Launchpad
+from jinja2 import Template
+
+lp = Launchpad.login_with('lp-report-bot', 'production', version='devel')
+prj = lp.projects['fuel']
+
+tags = prj.official_bug_tags
 
 people = """
-    fuel-python
-    fuel-astute
-    fuel-provisioning
-    fuel-build
     alekseyk-ru
     dshulyak
     rustyrobot
@@ -282,9 +38,125 @@ teams = """
     fuel-build
 """.split("\n    ")
 
-status_pre = "field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&field.status%3Alist=INPROGRESS&field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&"
+tag_ownership_tree = {
+    'alekseyk-ru': [
+        'feature-advanced-networking',
+        'feature-bonding',
+        'feature-hardware-change',
+        'feature-multi-l2',
+        'module-networks'],
+    'dshulyak': [
+        'feature-redeployment',
+        'module-netcheck',
+        'module-ostf',
+        'module-serialization',
+        'module-tasks'
+    ],
+    'rustyrobot': [
+        'feature-plugins'
+    ],
+    'ikalnitsky': [
+        'feature-logging',
+        'feature-remote-repos',
+        'feature-upgrade',
+    ],
+    'nmarkov': [
+        'feature-demo-site',
+        'feature-validation',
+        'module-fuelmenu',
+        'module-nailgun',
+        'module-shotgun',
+    ],
+    'aroma-x': [
+    ],
+    'akislitsky': [
+        'feature-deadlocks',
+        'feature-mongo',
+        'feature-security',
+        'feature-simple-mode',
+        'feature-stats',
+    ],
+    'kozhukalov': [
+        'feature-native-provisioning',
+        'module-build',
+        'module-master-node-installation',
+        'module-nailgun-agent',
+        'module-volumes',
+    ],
+    'a-gordeev': [
+        'feature-image-based',
+    ],
+    'ivankliuk': [
+    ],
+    'vsharshov': [
+        'feature-progress-bar',
+        'feature-reset-env',
+        'feature-stop-deployment',
+        'module-astute',
+    ],
+    'romcheg': [
+        'module-client',
+    ],
+}
+
+not_started_pre = "field.status%3Alist=NEW&field.status%3Alist=CONFIRMED&field.status%3Alist=TRIAGED&"
+started_pre = "field.status%3Alist=INPROGRESS&"
+incomplete_pre = "field.status%3Alist=INCOMPLETE_WITH_RESPONSE&field.status%3Alist=INCOMPLETE_WITHOUT_RESPONSE&"
+open_pre = not_started_pre + started_pre + incomplete_pre
 ml_pre = "field.milestone%3Alist=68007&"
-pre = status_pre + ml_pre
+uri_base = "https://bugs.launchpad.net/fuel/+bugs?" + ml_pre
+#pre = status_pre + ml_pre
+
+def num_link(url):
+    count = os.popen("curl '%s' 2> /dev/null | grep -B 1 -m 1 '            result' | head -n 1" % url).read()
+    return "<a href='%s'>%s</a>" % (url, count.strip())
+
+tag_ownership = {}
+
+for owner in tag_ownership_tree.keys():
+    for t in tag_ownership_tree[owner]:
+        tag_ownership[t] = owner
+
+for tag in tags:
+    if tag and (tag.startswith("feature-") or tag.startswith("module-") or tag=="tech-debt" or tag=="customer-found" or tag=="feature"):
+        if not tag_ownership.has_key(tag):
+            tag_ownership[tag] = None
+
+tag_report = []
+
+for t in tag_ownership.keys():
+    row = {
+        'tag': t,
+        'total': num_link(uri_base + open_pre + "field.tag=" + t),
+        'in_queue': num_link(uri_base + not_started_pre + "field.tag=" + t),
+        'in_progress': num_link(uri_base + started_pre + "field.tag=" + t),
+        'incomplete': num_link(uri_base + incomplete_pre + "field.tag=" + t),
+        'owner': tag_ownership[t],
+    }
+    tag_report.append(row)
+
+template = """
+<style type='text/css'>
+th{background: #eee}
+</style>
+<h1>HCF readiness</h1>
+<table>
+{% for group in tag_report|groupby('owner') %}
+<tr><th colspan=5>Tag owner: {{group.grouper}}</th></tr>
+<tr><th>Tag</th><th>Total</th><th>Not started</th><th>In progress</th>
+<th>Incomplete</th></tr>
+{% for row in group.list %}
+<tr><th>{{row.tag}}</th><td>{{row.total}}</td><td>{{row.in_queue}}</td>
+<td>{{row.in_progress}}</td><td>{{row.incomplete}}</td></tr>
+{% endfor %}
+{% endfor %}
+</table>
+"""
+
+html_report = Template(template)
+print html_report.render(tag_report=tag_report)
+
+exit()
 
 print "<h1>Tags</h1><table><tr><th>Tag"
 
@@ -297,7 +169,7 @@ print "</tr>"
 
 for t in tags:
     tag = t.strip()
-    if tag and (tag.startswith("feature-") or tag.startswith("module-") or tag=="tech-debt" or tag=="customer-found"):
+    if tag and (tag.startswith("feature-") or tag.startswith("module-") or tag=="tech-debt" or tag=="customer-found" or tag=="feature"):
         print "<tr>"
         url = "https://bugs.launchpad.net/fuel/+bugs?%sfield.tag=%s" % (pre, tag)
         count = os.popen("curl '%s' 2> /dev/null | grep -B 1 -m 1 '            result' | head -n 1" % url).read()
@@ -314,7 +186,7 @@ print "</table>"
 
 print "<h1>People</h1>"
 
-for p in people:
+for p in people + teams:
     person = p.strip()
     if person:
         url = "https://bugs.launchpad.net/~%s/+bugs?%sfield.assignee=%s" % (person, pre, person)
