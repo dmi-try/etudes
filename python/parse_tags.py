@@ -29,6 +29,7 @@ people = """
     pkaminski
     romcheg
     loles
+    rmoe
 """.split("\n    ")
 
 teams = """
@@ -135,12 +136,25 @@ for t in tag_ownership.keys():
     }
     tag_report.append(row)
 
+people_report = []
+
+for p in teams + people:
+    row = {
+        'name': p,
+        'total': num_link(uri_base + open_pre + "field.assignee=" + p),
+        'in_queue': num_link(uri_base + not_started_pre + "field.assignee=" + p),
+        'in_progress': num_link(uri_base + started_pre + "field.assignee=" + p),
+        'incomplete': num_link(uri_base + incomplete_pre + "field.assignee=" + p),
+    }
+    people_report.append(row)
+
 template = """
 <style type='text/css'>
 th{background: #eee}
 </style>
 <h1>HCF readiness</h1>
 <table>
+<tr><th colspan=5>Tags</th></tr>
 {% for group in tag_report|groupby('owner') %}
 <tr><th colspan=5>Tag owner: {{group.grouper}}</th></tr>
 <tr><th>Tag</th><th>Total</th><th>Not started</th><th>In progress</th>
@@ -150,45 +164,13 @@ th{background: #eee}
 <td>{{row.in_progress}}</td><td>{{row.incomplete}}</td></tr>
 {% endfor %}
 {% endfor %}
+<tr><th colspan=5>People</th></tr>
+{% for p in people_report %}
+<tr><th>{{p.name}}</th><td>{{p.total}}</td><td>{{p.in_queue}}</td>
+<td>{{p.in_progress}}</td><td>{{p.incomplete}}</td></tr>
+{% endfor %}
 </table>
 """
 
 html_report = Template(template)
-print html_report.render(tag_report=tag_report)
-
-exit()
-
-print "<h1>Tags</h1><table><tr><th>Tag"
-
-for t in teams:
-    team = t.strip()
-    if team:
-        print "<th>%s" % team
-
-print "</tr>"
-
-for t in tags:
-    tag = t.strip()
-    if tag and (tag.startswith("feature-") or tag.startswith("module-") or tag=="tech-debt" or tag=="customer-found" or tag=="feature"):
-        print "<tr>"
-        url = "https://bugs.launchpad.net/fuel/+bugs?%sfield.tag=%s" % (pre, tag)
-        count = os.popen("curl '%s' 2> /dev/null | grep -B 1 -m 1 '            result' | head -n 1" % url).read()
-        print "<td><a href='%s'>%s (%s)</a>" % (url, tag, count.strip())
-        for team_r in teams:
-            team = team_r.strip()
-            if team:
-                url = "https://bugs.launchpad.net/fuel/+bugs?%sfield.tag=%s&field.assignee=%s" % (pre, tag, team)
-                count = os.popen("curl '%s' 2> /dev/null | grep -B 1 -m 1 '            result' | head -n 1" % url).read()
-                print "<td><a href='%s'>%s</a>" % (url, count.strip())
-        print "</tr>"
-
-print "</table>"
-
-print "<h1>People</h1>"
-
-for p in people + teams:
-    person = p.strip()
-    if person:
-        url = "https://bugs.launchpad.net/~%s/+bugs?%sfield.assignee=%s" % (person, pre, person)
-        count = os.popen("curl '%s' 2> /dev/null | grep -B 1 -m 1 '            result' | head -n 1" % url).read()
-        print "<a href='%s'>%s (%s)</a>" % (url, person, count.strip())
+print html_report.render(tag_report=tag_report, people_report=people_report)
